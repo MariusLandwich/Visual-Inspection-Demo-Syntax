@@ -36,8 +36,7 @@ export default function HomeScreen() {
         <ThemedText type="subtitle">Weitere Infos</ThemedText>
         <ThemedText>
         Wenn Sie mehr erfahren möchten, schauen Sie unbedingt auf unserer <ExternalLink href="https://de.syntax.com/syntax-visual-inspection">
-          <ThemedText type="link">Homepage</ThemedText> vorbei. Falls Sie noch keine unserer Demo-Boxen erhalten haben, können Sie hier das entsprechende Formular ausfüllen und sich eine zusenden lassen.
-        </ExternalLink>
+          <ThemedText type="link">Homepage</ThemedText></ExternalLink> vorbei. Falls Sie noch keine unserer Demo-Boxen erhalten haben, können Sie hier das entsprechende Formular ausfüllen und sich eine zusenden lassen.
         </ThemedText>
       </ThemedView>
     </ParallaxScrollView>
