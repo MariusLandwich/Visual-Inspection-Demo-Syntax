@@ -1,6 +1,4 @@
 import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
 import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -9,7 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 export default function HomeScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#1eb4e6', dark: '#1eb4e6' }}
       headerImage={
         <Image
           source={require('@/assets/images/Syntax-logo-white-horiz.png')}
@@ -18,27 +16,28 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Wilkommen zu unserer Syntax Visual Inspection Demo! <HelloWave /></ThemedText>
+        <ThemedText type="title">Erlebe Syntax Visual Inspection</ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Überblick</ThemedText>
         <ThemedText>
-        Diese Webapp bieten einen Vorgeschmack auf die vielfältigen Möglichkeiten, die Visual Inspection bietet. Dabei wird ein Machine-Learning-Modell genutzt, das darauf trainiert wurde, durch einen Filzstift simulierte "Kratzer" zu erkennen.
+        Erleben Sie die innovativen Möglichkeiten von Visual Inspection mit unserer Webanwendung. Diese Demo zeigt die Leistungsfähigkeit eines Machine-Learning-Modells, das speziell darauf trainiert wurde, durch einen Filzstift simulierte "Kratzer" zu erkennen.
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Funktionsweise</ThemedText>
         <ThemedText>
-        Nutzen Sie den Filzstift, um beliebig "Kratzer" auf dem Fahrzeug zu platzieren. Wählen Sie dann den <ThemedText type="defaultSemiBold">Demo</ThemedText> Tab aus und platzieren Sie das Fahrzeug vor der Kamera für die Objekterkennung.
+        Verwenden Sie den Filzstift, um beliebig "Kratzer" auf dem Fahrzeug zu simulieren. Gehen Sie anschließend zum <ThemedText type="defaultSemiBold">Demo-Tab</ThemedText> und positionieren Sie das Fahrzeug vor der Kamera, um die Objekterkennung in Aktion zu erleben.
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Weitere Infos</ThemedText>
+        <ThemedText type="subtitle">Weitere Informationen</ThemedText>
         <ThemedText>
-        Wenn Sie mehr erfahren möchten, schauen Sie unbedingt auf unserer <ExternalLink href="https://de.syntax.com/syntax-visual-inspection">
-          <ThemedText type="link">Homepage</ThemedText></ExternalLink> vorbei. Falls Sie noch keine unserer Demo-Boxen erhalten haben, können Sie hier das entsprechende Formular ausfüllen und sich eine zusenden lassen.
+        Möchten Sie mehr erfahren? Besuchen Sie unsere <ExternalLink href="https://de.syntax.com/syntax-visual-inspection">
+          <ThemedText type="link">Homepage</ThemedText></ExternalLink> für ausführliche Informationen. Falls Sie noch keine unserer Demo-Boxen erhalten haben, füllen Sie bitte das entsprechende Formular aus, um Ihre eigene Box zu bestellen.
         </ThemedText>
       </ThemedView>
+      <ThemedText>Probieren Sie die Demo aus und erleben Sie selbst, wie Syntax Ihre Qualitätskontrolle revolutionieren kann!</ThemedText>
     </ParallaxScrollView>
   );
 }
