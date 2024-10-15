@@ -1,5 +1,14 @@
 {
   "expo": {
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "extra": {
+      "assets": [
+        "./assets/model/model.json",
+        "./assets/model/group1-shard.bin"
+      ]
+    },
     "name": "Syntax Visual Inspection Showcase",
     "slug": "SyntaxShowcase",
     "version": "1.0.0",
