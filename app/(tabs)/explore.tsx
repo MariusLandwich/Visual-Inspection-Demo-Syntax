@@ -1,116 +1,103 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Image, Platform } from 'react-native';
-import * as tf from '@tensorflow/tfjs';
-import { cameraWithTensors, bundleResourceIO } from '@tensorflow/tfjs-react-native';
+import { CameraType } from 'expo-camera/build/legacy/Camera.types';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { Asset } from 'expo-asset';
+import * as tf from '@tensorflow/tfjs';
+import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
+import { Camera } from 'expo-camera';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Button, Text, TouchableOpacity } from 'react-native';
-import { Camera, CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+const loadLocalModel = async () => {
+  try {
+    const modelJsonAsset = Asset.fromModule(require('../../assets/model/model.json'));
+    const modelWeightsAsset = Asset.fromModule(require('../../assets/model/group1-shard1of1.bin'));
+    await modelJsonAsset.downloadAsync();  // Ensure the file is downloaded
+    await modelWeightsAsset.downloadAsync();  // Ensure the file is downloaded
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+    const modelJsonUri = modelJsonAsset.uri;  // The HTTP path to the file
+    const modelWeightsUri = modelWeightsAsset.uri;  // The HTTP path to the file
 
+    // Load the model with loadGraphModel using the path
+    const model = await tf.loadGraphModel(modelJsonUri);
+    console.log('Model successfully loaded!');
+    return model;
+  } catch (error) {
+    console.error('Error loading the model:', error);
+  }
+};
 
-export default function TabTwoScreen() {
-  const [facing, setFacing] = useState<CameraType>('back');
-  const [permission, requestPermission] = useCameraPermissions();
-  const [hasPermission, setHasPermission] = useState<null | boolean>(null);
+// Ensure Camera component is correctly typed and used
+const TensorCamera = cameraWithTensors(Camera as any);
+
+const Explore = () => {
+  const cameraRef = useRef<any>(null);
+  const [model, setModel] = useState<tf.GraphModel | null>(null);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
+      await tf.ready();
+      const loadedModel = await loadLocalModel();
+      if (loadedModel) {
+        setModel(loadedModel);
+      }
     })();
   }, []);
 
   if (hasPermission === null) {
-    return <View />;
+    return <View><Text>Requesting camera permission...</Text></View>;
   }
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return <View><Text>No access to camera</Text></View>;
   }
 
-
+  const handleCameraStream = (images: any) => {
+    const loop = async () => {
+      const nextImageTensor = images.next().value;
   
-  function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
-  }
-
-  const loadLocalModel = async () => {
-    try {
-      // Die model.json Datei aus dem Assets-Ordner laden
-      const modelJsonAsset = Asset.fromModule(require('./assets/model/model.json'));
-      await modelJsonAsset.downloadAsync();  // Sicherstellen, dass die Datei heruntergeladen ist
+      if (nextImageTensor && model) {
+        const processedImage = preprocessImage(nextImageTensor);  // Bild vorverarbeiten
+        const prediction = await model.predict(processedImage) as tf.Tensor;
+        console.log('Vorhersage:', prediction);
+      }
   
-      const modelJsonUri = modelJsonAsset.uri;  // Der HTTP-Pfad zur Datei
+      requestAnimationFrame(loop);
+    };
   
-      // Lade das Modell mit loadGraphModel unter Angabe des Pfades
-      const model = await tf.loadGraphModel(modelJsonUri);
-      console.log('Modell erfolgreich geladen!');
-      return model;
-    } catch (error) {
-      console.error('Fehler beim Laden des Modells:', error);
-    }
+    loop();
   };
 
+  const preprocessImage = (imageTensor: tf.Tensor) => {
+    // Implement your image preprocessing logic here
+    return imageTensor;
+  };
+  
+
   return (
-    <View style={styles.cameraContainer}>
-      <CameraView style={styles.camera} facing={facing}>
-        <View style={styles.buttonContainer}>
-        </View>
-      </CameraView>
+    <View style={{ flex: 1 }}>
+      {model ? (
+        <TensorCamera
+          style={styles.camera}
+          type={CameraType.back}
+          cameraTextureHeight={1920}
+          cameraTextureWidth={1080}
+          resizeHeight={224}
+          resizeWidth={224}
+          resizeDepth={3}
+          onReady={handleCameraStream}
+          autorender={true} useCustomShadersToResize={false}        />
+      ) : (
+        <View><Text>Loading model...</Text></View>
+      )}
     </View>
   );
+};
 
-}
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  cameraContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  cameraMessage: {
-    textAlign: 'center',
-    paddingBottom: 10,
-  },
   camera: {
     flex: 1,
   },
-  buttonContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    margin: 64,
-  },
-  button: {
-    flex: 1,
-    alignSelf: 'flex-end',
-    alignItems: 'center',
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
 });
 
-
-
-
-
-
-
-
-
+export default Explore;
