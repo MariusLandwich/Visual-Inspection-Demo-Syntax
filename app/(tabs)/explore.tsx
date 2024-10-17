@@ -1,103 +1,69 @@
-import { CameraType } from 'expo-camera/build/legacy/Camera.types';
-import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Asset } from 'expo-asset';
-import * as tf from '@tensorflow/tfjs';
-import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
-import { Camera } from 'expo-camera';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { useState } from 'react';
+import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const loadLocalModel = async () => {
-  try {
-    const modelJsonAsset = Asset.fromModule(require('../../assets/model/model.json'));
-    const modelWeightsAsset = Asset.fromModule(require('../../assets/model/group1-shard1of1.bin'));
-    await modelJsonAsset.downloadAsync();  // Ensure the file is downloaded
-    await modelWeightsAsset.downloadAsync();  // Ensure the file is downloaded
+export default function App() {
+  const [facing, setFacing] = useState<CameraType>('back');
+  const [permission, requestPermission] = useCameraPermissions();
 
-    const modelJsonUri = modelJsonAsset.uri;  // The HTTP path to the file
-    const modelWeightsUri = modelWeightsAsset.uri;  // The HTTP path to the file
-
-    // Load the model with loadGraphModel using the path
-    const model = await tf.loadGraphModel(modelJsonUri);
-    console.log('Model successfully loaded!');
-    return model;
-  } catch (error) {
-    console.error('Error loading the model:', error);
-  }
-};
-
-// Ensure Camera component is correctly typed and used
-const TensorCamera = cameraWithTensors(Camera as any);
-
-const Explore = () => {
-  const cameraRef = useRef<any>(null);
-  const [model, setModel] = useState<tf.GraphModel | null>(null);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-      await tf.ready();
-      const loadedModel = await loadLocalModel();
-      if (loadedModel) {
-        setModel(loadedModel);
-      }
-    })();
-  }, []);
-
-  if (hasPermission === null) {
-    return <View><Text>Requesting camera permission...</Text></View>;
-  }
-  if (hasPermission === false) {
-    return <View><Text>No access to camera</Text></View>;
+  if (!permission) {
+    // Camera permissions are still loading.
+    return <View />;
   }
 
-  const handleCameraStream = (images: any) => {
-    const loop = async () => {
-      const nextImageTensor = images.next().value;
-  
-      if (nextImageTensor && model) {
-        const processedImage = preprocessImage(nextImageTensor);  // Bild vorverarbeiten
-        const prediction = await model.predict(processedImage) as tf.Tensor;
-        console.log('Vorhersage:', prediction);
-      }
-  
-      requestAnimationFrame(loop);
-    };
-  
-    loop();
-  };
+  if (!permission.granted) {
+    // Camera permissions are not granted yet.
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>We need your permission to show the camera</Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
+    );
+  }
 
-  const preprocessImage = (imageTensor: tf.Tensor) => {
-    // Implement your image preprocessing logic here
-    return imageTensor;
-  };
-  
+  function toggleCameraFacing() {
+    setFacing(current => (current === 'back' ? 'front' : 'back'));
+  }
 
   return (
-    <View style={{ flex: 1 }}>
-      {model ? (
-        <TensorCamera
-          style={styles.camera}
-          type={CameraType.back}
-          cameraTextureHeight={1920}
-          cameraTextureWidth={1080}
-          resizeHeight={224}
-          resizeWidth={224}
-          resizeDepth={3}
-          onReady={handleCameraStream}
-          autorender={true} useCustomShadersToResize={false}        />
-      ) : (
-        <View><Text>Loading model...</Text></View>
-      )}
+    <View style={styles.container}>
+      <CameraView style={styles.camera} facing={facing}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+            <Text style={styles.text}>Kamera drehen</Text>
+          </TouchableOpacity>
+        </View>
+      </CameraView>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  message: {
+    textAlign: 'center',
+    paddingBottom: 10,
+  },
   camera: {
     flex: 1,
   },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    margin: 64,
+  },
+  button: {
+    flex: 1,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+  },
 });
-
-export default Explore;
